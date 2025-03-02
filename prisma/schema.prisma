@@ -1,0 +1,123 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Enum {
+  ONE
+  TWO
+  THREE
+}
+
+model Test {
+  id String @id @default(uuid())
+
+  string         String
+  stringNullable String?
+  stringArray    String[]
+
+  boolean         Boolean
+  booleanNullable Boolean?
+  booleanArray    Boolean[]
+
+  date         DateTime
+  dateNullable DateTime?
+  dateArray    DateTime[]
+
+  time         DateTime   @db.Time()
+  timeNullable DateTime?  @db.Time()
+  timeArray    DateTime[] @db.Time()
+
+  timestamp         DateTime   @db.Timestamp()
+  timestampNullable DateTime?  @db.Timestamp()
+  timestampArray    DateTime[] @db.Timestamp()
+
+  timestampz         DateTime   @db.Timestamptz()
+  timestampzNullable DateTime?  @db.Timestamptz()
+  timestampzArray    DateTime[] @db.Timestamptz()
+
+  timetz         DateTime   @db.Timetz()
+  timetzNullable DateTime?  @db.Timetz()
+  timetzArray    DateTime[] @db.Timetz()
+
+  number         Int
+  numberNullable Int?
+  numberArray    Int[]
+
+  bigInt         BigInt
+  bigIntNullable BigInt?
+  bigIntArray    BigInt[]
+
+  smallInt         Int   @db.SmallInt()
+  smallIntNullable Int?  @db.SmallInt()
+  smallIntArray    Int[] @db.SmallInt()
+
+  decimal         Decimal
+  decimalNullable Decimal?
+  decimalArray    Decimal[]
+
+  money         Decimal   @db.Money()
+  moneyNullable Decimal?  @db.Money()
+  moneyArray    Decimal[] @db.Money()
+
+  float         Float
+  floatNullable Float?
+  floatArray    Float[]
+
+  real         Float   @db.Real()
+  realNullable Float?  @db.Real()
+  realArray    Float[] @db.Real()
+
+  double         Float   @db.DoublePrecision()
+  doubleNullable Float?  @db.DoublePrecision()
+  doubleArray    Float[] @db.DoublePrecision()
+
+  json         Json
+  jsonNullable Json?
+  jsonArray    Json[]
+
+  enum         Enum
+  enumNullable Enum?
+  enumArray    Enum[]
+
+  bytes         Bytes
+  bytesNullable Bytes?
+  bytesArray    Bytes[]
+
+  OneToOne   OneToOne?
+  oneToMany  OneToMany[]
+  manyToMany ManyToMany[]
+}
+
+model OneToOne {
+  id     String @id @default(uuid())
+  test   Test   @relation(fields: [testId], references: [id])
+  testId String @unique
+}
+
+model OneToMany {
+  id     String @id @default(uuid())
+  test   Test   @relation(fields: [testId], references: [id])
+  testId String
+}
+
+model ManyToMany {
+  id   String @id @default(uuid())
+  test Test[]
+}
+
+model Test2 {
+  id     String @id @default(uuid())
+  string String
+}
