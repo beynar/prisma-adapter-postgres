@@ -446,17 +446,16 @@ function normalize_money(money: string): string {
   return money.slice(1);
 }
 
+function toJson(json: string): unknown {
+  return json;
+}
+
 /**
  * Custom parsers for specific PostgreSQL types that need special handling
  */
 export const customParsers: { [key: number]: (value: string) => unknown } = {
   // // UUID - just pass through
   // [ScalarColumnType.UUID]: (value: string) => value,
-
-  // // JSON and JSONB - parse to JavaScript objects
-  [ScalarColumnType.JSON]: (value: string) => JSON.parse(value),
-  [ScalarColumnType.JSONB]: (value: string) => JSON.parse(value),
-
   // // Arrays - use postgres-array parser
   // [ArrayColumnType.TEXT_ARRAY]: parsePostgresArray,
   // [ArrayColumnType.INT4_ARRAY]: parsePostgresArray,
@@ -475,6 +474,8 @@ export const customParsers: { [key: number]: (value: string) => unknown } = {
   // [1270]: normalizeTime,
   [ScalarColumnType.BYTEA]: convertBytes,
   [ScalarColumnType.TIMESTAMPTZ]: normalize_timestampz,
-  [ScalarColumnType.MONEY]: normalize_money
+  [ScalarColumnType.MONEY]: normalize_money,
+  [ScalarColumnType.JSONB]: toJson,
+  [ScalarColumnType.JSON]: toJson
   // [ArrayColumnType.BYTEA_ARRAY]: normalizeByteaArray,
 };
