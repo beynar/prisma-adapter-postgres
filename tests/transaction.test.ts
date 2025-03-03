@@ -4,7 +4,7 @@ import { prismaBasic, prismaPostgres } from "../prisma.fixture";
 // Test data constants
 const TEST_ID_1 = "tx-test-1";
 const TEST_ID_2 = "tx-test-2";
-vi.con;
+
 // Helper function to create test data with all required fields
 function createTestData(id: string, stringValue: string) {
   return {
@@ -13,7 +13,7 @@ function createTestData(id: string, stringValue: string) {
   };
 }
 
-describe.shuffle("Transaction Tests for Postgres Adapter", () => {
+describe.sequential("Transaction Tests for Postgres Adapter", () => {
   //   Clean up test data before and after each test
   beforeEach(async () => {
     await prismaPostgres.test2.deleteMany({
@@ -139,6 +139,14 @@ describe.shuffle("Transaction Tests for Postgres Adapter", () => {
   });
 
   it("should handle multiple query types in a transaction", async () => {
+    await prismaPostgres.test2.deleteMany({
+      where: {
+        id: {
+          in: [TEST_ID_1, TEST_ID_2]
+        }
+      }
+    });
+
     await prismaPostgres.$transaction(async (tx) => {
       // Create
       await tx.test2.create({

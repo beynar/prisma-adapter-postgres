@@ -267,10 +267,6 @@ export class UnsupportedNativeDataType extends Error {
  * Map PostgreSQL type OIDs to Prisma ColumnTypes
  */
 export function fieldToColumnType(fieldTypeId: number): ColumnType {
-  if (fieldTypeId === ArrayColumnType.BOOL_ARRAY) {
-    console.log("fieldToColumnType", fieldTypeId);
-    return ColumnTypeEnum.BooleanArray;
-  }
   switch (fieldTypeId) {
     case ScalarColumnType.INT2:
     case ScalarColumnType.INT4:
@@ -361,7 +357,6 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
       if (fieldTypeId >= 10_000) {
         return ColumnTypeEnum.Text;
       }
-      console.log("fieldToColumnType", fieldTypeId);
       throw new UnsupportedNativeDataType(fieldTypeId);
   }
 }
@@ -387,7 +382,6 @@ export function fixArrayBufferValues(values: unknown[]) {
  * Parse a PostgreSQL array string into a JavaScript array
  */
 export function parsePostgresArray(value: string): unknown[] {
-  console.log("parsePostgresArray", value);
   return parseArray(value);
 }
 
@@ -414,7 +408,6 @@ export function normalizeTime(value: string): string {
 
 function normalize_timestampz(time: string): string {
   // Parse the input time string
-  console.log(time.split("+")[0].replace("T", " "));
   return time.split("+")[0].replace("T", " ");
 }
 
@@ -451,11 +444,6 @@ function convertBytes(serializedBytes: string): number[] {
 
 function normalize_money(money: string): string {
   return money.slice(1);
-}
-
-function normalize_bool_array(boolArray: string): boolean[] {
-  console.log({ boolArray });
-  return boolArray.split(",").map((bool) => bool === "t");
 }
 
 /**

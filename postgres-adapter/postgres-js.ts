@@ -171,7 +171,8 @@ class PostgresJsTransaction extends PostgresJsQueryable<TransactionPostgresJs> i
   constructor(
     client: TransactionPostgresJs,
     readonly options: TransactionOptions,
-    private txDeferred: Deferred<void>
+    private txDeferred: Deferred<void>,
+    private txResultPromise: Promise<void>
   ) {
     super(client);
   }
@@ -179,13 +180,15 @@ class PostgresJsTransaction extends PostgresJsQueryable<TransactionPostgresJs> i
   async commit(): Promise<Result<undefined>> {
     debug(`[js::commit]`);
     this.txDeferred.resolve();
+    await this.txResultPromise;
     return ok(undefined);
   }
 
   async rollback(): Promise<Result<undefined>> {
     debug("[js::rollback]");
-    // await this.client`ROLLBACK AND CANCEL;`;
+    await this.client`ROLLBACK AND CANCEL;`;
     this.txDeferred.resolve();
+    await this.txResultPromise;
     return ok(undefined);
   }
 }
@@ -207,7 +210,7 @@ class PostgresJsTransactionContext extends PostgresJsQueryable<PostgresJs> {
       const txResultPromise = this.client
         .begin(async (tx) => {
           const [txDeferred, deferredPromise] = createDeferred<void>();
-          resolve(ok(new PostgresJsTransaction(tx, options, txDeferred)));
+          resolve(ok(new PostgresJsTransaction(tx, options, txDeferred, txResultPromise)));
           await deferredPromise;
 
           return "ok";
