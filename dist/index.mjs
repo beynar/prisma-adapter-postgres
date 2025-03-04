@@ -489,7 +489,6 @@ var PostgresJsQueryable = class {
       let columnTypes = [];
       try {
         columnTypes = (columns || []).map((col) => fieldToColumnType(col.type));
-        console.log(columnTypes);
       } catch (e) {
         if (e instanceof UnsupportedNativeDataType) {
           return err({
@@ -513,14 +512,6 @@ var PostgresJsQueryable = class {
           }
           return val;
         })
-      );
-      console.dir(
-        {
-          columnNames,
-          columnTypes,
-          rows: formattedRows
-        },
-        { depth: null }
       );
       return ok({
         columnNames,

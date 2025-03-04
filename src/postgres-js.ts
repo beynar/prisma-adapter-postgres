@@ -106,7 +106,6 @@ class PostgresJsQueryable<ClientT extends PostgresJs | TransactionPostgresJs> im
 
       try {
         columnTypes = (columns || []).map((col) => fieldToColumnType(col.type));
-        console.log(columnTypes);
       } catch (e) {
         if (e instanceof UnsupportedNativeDataType) {
           return err({
@@ -140,14 +139,7 @@ class PostgresJsQueryable<ClientT extends PostgresJs | TransactionPostgresJs> im
           return val;
         })
       );
-      console.dir(
-        {
-          columnNames,
-          columnTypes,
-          rows: formattedRows
-        },
-        { depth: null }
-      );
+
       return ok({
         columnNames,
         columnTypes,
