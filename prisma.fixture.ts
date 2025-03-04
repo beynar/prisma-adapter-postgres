@@ -1,60 +1,35 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaPostgres } from "./postgres-adapter";
+import { PrismaPostgres } from "./src";
+import postgres from "postgres";
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-// Standard Prisma client using the default adapter
+// Standard Prisma client
 export const prismaBasic = new PrismaClient({
   omit: {
     test: {
       timetzArray: true,
+      moneyArray: true,
       timestampzArray: true
     }
   }
 });
 
-// Create a postgres connection for our adapter
-import postgres from "postgres";
-
-// Create the postgres client
-export const pgConnection = postgres(process.env.DATABASE_URL!, {
-  // types: {
-  //   1000: {
-  //     to: 1000,
-  //     from: [1000],
-  //     serialize: (value) => {
-  //       console.log("serialize", value);
-  //       return value.join(",");
-  //     },
-  //     parse: (value) => {
-  //       console.log("parse", value);
-  //       return value.split(",").map((bool) => bool === "t");
-  //     }
-  //   }
-  // }
-});
-
-// Create the PostgreSQL adapter
-const pgAdapter = new PrismaPostgres(process.env.DATABASE_URL!);
-
-// Create Prisma client using our adapter
+// Postgres Prisma client using the postgres adapter
 export const prismaPostgres = new PrismaClient({
-  adapter: pgAdapter,
+  adapter: new PrismaPostgres(postgres(process.env.DATABASE_URL!)),
   omit: {
     test: {
       timetzArray: true,
+      moneyArray: true,
       timestampzArray: true
     }
   }
 });
 
-import { Pool } from "pg";
-
-import { PrismaPg } from "@prisma/adapter-pg";
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
-
-const nodePgAdapter = new PrismaPg(pool);
-
+// PG Prisma client using the pg adapter
 export const prismaPg = new PrismaClient({
-  adapter: nodePgAdapter,
+  adapter: new PrismaPg(new Pool({ connectionString: process.env.DATABASE_URL! })),
   omit: {
     test: {
       timetzArray: true,

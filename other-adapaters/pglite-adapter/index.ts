@@ -1,1 +1,0 @@
-export { PrismaPGlite } from "./pglite";

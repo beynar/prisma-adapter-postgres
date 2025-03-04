@@ -1,5 +1,52 @@
-import { PrismaClient, Prisma, Enum } from "@prisma/client";
-import { faker } from "@faker-js/faker";
+import { PrismaClient, Enum } from "@prisma/client";
+
+const faker = {
+  lorem: {
+    sentence: () => {
+      const sentences = [
+        "A random sentence for testing purposes.",
+        "This is some sample text data.",
+        "Database seeding is an important practice.",
+        "Custom faker implementation for testing.",
+        "No external dependencies needed here."
+      ];
+      return sentences[Math.floor(Math.random() * sentences.length)];
+    },
+    word: () => {
+      const words = ["sample", "test", "random", "data", "word", "seed", "custom", "prisma"];
+      return words[Math.floor(Math.random() * words.length)];
+    }
+  },
+  datatype: {
+    boolean: () => Math.random() > 0.5
+  },
+  date: {
+    past: () => {
+      const now = new Date();
+      const daysAgo = Math.floor(Math.random() * 365);
+      const past = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+      return past;
+    },
+    recent: () => {
+      const now = new Date();
+      const hoursAgo = Math.floor(Math.random() * 24);
+      const recent = new Date(now.getTime() - hoursAgo * 60 * 60 * 1000);
+      return recent;
+    }
+  },
+  number: {
+    int: ({ min, max }: { min: number; max: number }) => {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    },
+    float: ({ min, max, fractionDigits }: { min: number; max: number; fractionDigits?: number }) => {
+      const value = Math.random() * (max - min) + min;
+      if (fractionDigits !== undefined) {
+        return parseFloat(value.toFixed(fractionDigits));
+      }
+      return value;
+    }
+  }
+};
 
 const prisma = new PrismaClient();
 
@@ -69,7 +116,7 @@ async function main() {
         jsonArray: [{ data: faker.lorem.sentence() }, { data: faker.lorem.sentence() }],
         enum: [Enum.ONE, Enum.TWO, Enum.THREE][Math.floor(Math.random() * 3)],
         enumArray: (() => {
-          const values = [];
+          const values: Enum[] = [];
           if (Math.random() > 0.5) values.push(Enum.ONE);
           if (Math.random() > 0.5) values.push(Enum.TWO);
           if (Math.random() > 0.5) values.push(Enum.THREE);

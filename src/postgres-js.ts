@@ -10,12 +10,10 @@ import type {
   Transaction as TransactionInterface,
   TransactionOptions,
   Result,
-  Error as PrismaError,
-  Transaction
+  Error as PrismaError
 } from "@prisma/driver-adapter-utils";
 import { Debug, ok, err } from "@prisma/driver-adapter-utils";
-import postgres from "postgres";
-
+import type postgres from "postgres";
 import { fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType, customParsers } from "./conversion";
 import { type Deferred, createDeferred } from "./deferred";
 
@@ -36,7 +34,7 @@ class PostgresJsQueryable<ClientT extends PostgresJs | TransactionPostgresJs> im
    * Execute a query and process the results
    */
   private async performIO(query: Query): Promise<{ rows: any[]; columns?: any[] }> {
-    const { sql, args, argTypes } = query;
+    let { sql, args, argTypes } = query;
     const transformedArgs = fixArrayBufferValues(args || []).map((arg, index) => {
       const argType = argTypes?.[index];
       if (argType === "Array") {
@@ -102,11 +100,13 @@ class PostgresJsQueryable<ClientT extends PostgresJs | TransactionPostgresJs> im
 
     try {
       const { rows, columns } = await this.performIO(query);
+
       const columnNames = columns ? columns.map((c) => c.name) : rows.length > 0 ? Object.keys(rows[0]) : [];
       let columnTypes: ColumnType[] = [];
 
       try {
         columnTypes = (columns || []).map((col) => fieldToColumnType(col.type));
+        console.log(columnTypes);
       } catch (e) {
         if (e instanceof UnsupportedNativeDataType) {
           return err({
@@ -140,7 +140,14 @@ class PostgresJsQueryable<ClientT extends PostgresJs | TransactionPostgresJs> im
           return val;
         })
       );
-
+      console.dir(
+        {
+          columnNames,
+          columnTypes,
+          rows: formattedRows
+        },
+        { depth: null }
+      );
       return ok({
         columnNames,
         columnTypes,
@@ -172,7 +179,7 @@ class PostgresJsTransaction extends PostgresJsQueryable<TransactionPostgresJs> i
     client: TransactionPostgresJs,
     readonly options: TransactionOptions,
     private txDeferred: Deferred<void>,
-    private txResultPromise: Promise<void>
+    private txResultPromise: Promise<any>
   ) {
     super(client);
   }
@@ -223,10 +230,12 @@ class PostgresJsTransactionContext extends PostgresJsQueryable<PostgresJs> {
 }
 
 export class PrismaPostgres extends PostgresJsQueryable<PostgresJs> implements DriverAdapter {
-  constructor(databaseUrl: string, options?: postgres.Options<{}>) {
-    const client = postgres(databaseUrl, options);
-    Object.assign(client.options.parsers, customParsers);
+  constructor(
+    client: PostgresJs,
+    private schemaName: string = "public"
+  ) {
     super(client);
+    Object.assign(client.options.parsers, customParsers);
   }
 
   async executeScript(script: string): Promise<Result<void>> {
@@ -242,7 +251,7 @@ export class PrismaPostgres extends PostgresJsQueryable<PostgresJs> implements D
 
   getConnectionInfo(): Result<ConnectionInfo> {
     return ok({
-      schemaName: "public"
+      schemaName: this.schemaName
     });
   }
 

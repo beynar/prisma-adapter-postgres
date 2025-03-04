@@ -406,7 +406,7 @@ export function normalizeTime(value: string): string {
   return value.split("+")[0].replace("T", " ");
 }
 
-function normalize_timestampz(time: string): string {
+export function normalizeTimestampz(time: string): string {
   // Parse the input time string
   return time.split("+")[0].replace("T", " ");
 }
@@ -438,44 +438,82 @@ function convertBytes(serializedBytes: string): number[] {
   return encodeBuffer(buffer);
 }
 
-/******************/
-/* Money handling */
-/******************/
-
-function normalize_money(money: string): string {
-  return money.slice(1);
-}
-
 function toJson(json: string): unknown {
   return json;
 }
 
-/**
- * Custom parsers for specific PostgreSQL types that need special handling
- */
-export const customParsers: { [key: number]: (value: string) => unknown } = {
-  // // UUID - just pass through
-  // [ScalarColumnType.UUID]: (value: string) => value,
-  // // Arrays - use postgres-array parser
-  // [ArrayColumnType.TEXT_ARRAY]: parsePostgresArray,
-  // [ArrayColumnType.INT4_ARRAY]: parsePostgresArray,
-  // [ArrayColumnType.INT8_ARRAY]: parsePostgresArray,
-  // [ArrayColumnType.FLOAT8_ARRAY]: parsePostgresArray,
-  [ArrayColumnType.BOOL_ARRAY]: parsePostgresArray,
-  // [ArrayColumnType.UUID_ARRAY]: parsePostgresArray,
-  // [ArrayColumnType.DATE_ARRAY]: parsePostgresArray,
-  // [ArrayColumnType.JSONB_ARRAY]: parsePostgresArray,
+// /**
+//  * Custom parsers for specific PostgreSQL types that need special handling
+//  */
+// export const customParsers: { [key: number]: (value: string) => unknown } = {
+//   // // UUID - just pass through
+//   // [ScalarColumnType.UUID]: (value: string) => value,
+//   // // Arrays - use postgres-array parser
+//   // [ArrayColumnType.TEXT_ARRAY]: parsePostgresArray,
+//   // [ArrayColumnType.INT4_ARRAY]: parsePostgresArray,
+//   // [ArrayColumnType.INT8_ARRAY]: parsePostgresArray,
+//   // [ArrayColumnType.FLOAT8_ARRAY]: parsePostgresArray,
+//   [ArrayColumnType.BOOL_ARRAY]: parsePostgresArray,
+//   // [ArrayColumnType.UUID_ARRAY]: parsePostgresArray,
+//   // [ArrayColumnType.DATE_ARRAY]: parsePostgresArray,
+//   // [ArrayColumnType.JSONB_ARRAY]: parsePostgresArray,
 
-  // Date/time - normalize to standard formats
-  [ScalarColumnType.TIMESTAMP]: normalizeTimestamp,
-  [ScalarColumnType.DATE]: normalizeDate,
+//   // Date/time - normalize to standard formats
+//   [ScalarColumnType.TIMESTAMP]: normalizeTimestamp,
+//   [ScalarColumnType.DATE]: normalizeDate,
+//   [ScalarColumnType.TIME]: normalizeTime,
+//   [ScalarColumnType.TIMETZ]: normalizeTime,
+//   // [1270]: normalizeTime,
+//   [ScalarColumnType.BYTEA]: convertBytes,
+//   [ScalarColumnType.TIMESTAMPTZ]: normalize_timestampz,
+//   [ScalarColumnType.MONEY]: normalize_money,
+//   [ScalarColumnType.JSONB]: toJson,
+//   [ScalarColumnType.JSON]: toJson
+//   // [ArrayColumnType.BYTEA_ARRAY]: normalizeByteaArray,
+// };
+
+function normalizeArray(element_normalizer: (string) => string): (string) => string[] {
+  return (str) => parseArray(str, element_normalizer);
+}
+
+/******************/
+/* Money handling */
+/******************/
+
+function normalizeMoney(money: string): string {
+  return money.slice(1);
+}
+
+/******************/
+/* XML handling */
+/******************/
+function normalizeXml(xml: string): string {
+  return xml;
+}
+
+function normalizeNumeric(numeric: string): string {
+  return numeric;
+}
+
+export const customParsers = {
+  [ScalarColumnType.NUMERIC]: normalizeNumeric,
+  [ArrayColumnType.NUMERIC_ARRAY]: normalizeArray(normalizeNumeric),
   [ScalarColumnType.TIME]: normalizeTime,
+  [ArrayColumnType.TIME_ARRAY]: normalizeArray(normalizeTime),
   [ScalarColumnType.TIMETZ]: normalizeTime,
-  // [1270]: normalizeTime,
-  [ScalarColumnType.BYTEA]: convertBytes,
-  [ScalarColumnType.TIMESTAMPTZ]: normalize_timestampz,
-  [ScalarColumnType.MONEY]: normalize_money,
+  [ScalarColumnType.DATE]: normalizeDate,
+  [ScalarColumnType.DATE]: normalizeDate,
+  [ArrayColumnType.DATE_ARRAY]: normalizeArray(normalizeDate),
+  [ScalarColumnType.TIMESTAMP]: normalizeTimestamp,
+  [ArrayColumnType.TIMESTAMP_ARRAY]: normalizeArray(normalizeTimestamp),
+  [ScalarColumnType.TIMESTAMPTZ]: normalizeTimestampz,
+  [ScalarColumnType.MONEY]: normalizeMoney,
+  [ArrayColumnType.MONEY_ARRAY]: normalizeArray(normalizeMoney),
+  [ScalarColumnType.JSON]: toJson,
   [ScalarColumnType.JSONB]: toJson,
-  [ScalarColumnType.JSON]: toJson
+  [ScalarColumnType.BYTEA]: convertBytes,
   // [ArrayColumnType.BYTEA_ARRAY]: normalizeByteaArray,
+  // [ArrayColumnType.BIT_ARRAY]: normalizeArray(normalizeBit),
+  // [ArrayColumnType.VARBIT_ARRAY]: normalizeArray(normalizeBit),
+  [ArrayColumnType.XML_ARRAY]: normalizeArray(normalizeXml)
 };
